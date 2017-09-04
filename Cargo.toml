@@ -4,3 +4,17 @@ version = "0.1.0"
 authors = ["Edouard Menayde <scrunshes@gmail.com>"]
 
 [dependencies]
+rustbox = "*"
+docopt = "0.8"
+serde = "1.0"
+serde_derive = "1.0" # if you're using `derive(Deserialize)`
+gapbuffer = "0.1.1"
+unicode-width = "0.1.1"
+
+[lib]
+name = "mark"
+path = "src/mark/lib.rs"
+
+[[bin]]
+name = "mark"
+doc = false
