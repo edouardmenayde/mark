@@ -34,7 +34,7 @@ impl Buffer {
   pub fn new_from_file(path: PathBuf) -> Buffer {
     match File::open(&path) {
       Ok(file) => {
-        let mut buffer = Buffer::from(file);
+        let buffer = Buffer::from(file);
 
         buffer
       }

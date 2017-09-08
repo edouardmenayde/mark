@@ -1,8 +1,13 @@
 use std::sync::{Mutex, Arc};
-use mark::Mark;
 use buffer::Buffer;
-use rustbox::{Color, RustBox, Style as RustBoxStyle};
+
+use rustbox::{RustBox, Color as RustBoxColor, Style as RustBoxStyle, RB_BOLD, RB_REVERSE};
+
 use unicode_width::UnicodeWidthChar;
+
+use syntect::easy::HighlightLines;
+use syntect::parsing::SyntaxSet;
+use syntect::highlighting::{ThemeSet, Style, FONT_STYLE_BOLD, FONT_STYLE_ITALIC};
 
 pub struct View {
   pub buffer: Arc<Mutex<Buffer>>,
@@ -40,22 +45,45 @@ impl View {
       let height = self.get_height();
       let width = self.get_width();
 
+      let ps = SyntaxSet::load_defaults_nonewlines();
+      let ts = ThemeSet::load_defaults();
+
+      let syntax = ps.find_syntax_by_extension("md").unwrap();
+      let mut h = HighlightLines::new(syntax, &ts.themes["InspiredGitHub"]);
+
       let mut lines = buffer.get_lines().take(height);
 
       for y in 0..height {
-        let mut x = 0;
         let line = lines.next().unwrap_or_else(Vec::new);
+        let l = String::from_utf8(line).unwrap();
+        let ranges: Vec<(Style, &str)> = h.highlight(&l);
 
-        for character in line.iter() {
-          let char = *character as char;
+        let mut x: usize = 0;
 
-          rustbox.print_char(x, y, RustBoxStyle::empty(), Color::White, Color::Black, char);
+        for (style, text) in ranges {
+          let font_style = style.font_style;
 
-          x += UnicodeWidthChar::width(char).unwrap_or(1);
+          let mut rb_style = RustBoxStyle::empty();
+
+          if font_style.contains(FONT_STYLE_BOLD) {
+            rb_style.insert(RB_BOLD);
+          } else if font_style.contains(FONT_STYLE_ITALIC) {
+            rb_style.insert(RB_REVERSE);
+          }
+
+          for character in text.chars() {
+            match character {
+              _ => {
+                rustbox.print_char(x, y, rb_style, RustBoxColor::White, RustBoxColor::Black, character);
+
+                x += UnicodeWidthChar::width(character).unwrap_or(1);
+              }
+            }
+          }
         }
 
-        if line.len() > width {
-          rustbox.print_char(width - 1, y, RustBoxStyle::empty(), Color::White, Color::Black, '→');
+        if l.len() > width {
+          rustbox.print_char(width - 1, y, RustBoxStyle::empty(), RustBoxColor::White, RustBoxColor::Black, '→');
         }
       }
     }

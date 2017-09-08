@@ -4,13 +4,10 @@ extern crate docopt;
 extern crate rustbox;
 extern crate mark;
 
-use std::error::Error;
 use std::default::Default;
-use std::process;
 use std::path::PathBuf;
 
 use rustbox::RustBox;
-use rustbox::Key;
 use docopt::Docopt;
 use mark::Editor;
 
